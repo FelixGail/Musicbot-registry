@@ -1,0 +1,19 @@
+[package]
+name = "musicbot-registry"
+version = "0.1.0"
+authors = ["Felix Gail <felix.clemens.gail@gmail.com>"]
+description = "Keeps a registry of active Musicbots (https://github.com/BjoernPetersen/MusicBot) on your public ip"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = "0.4.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+multimap = "0.8.1"
+
+[dependencies.rocket_contrib]
+version = "0.4.4"
+default-features = false
+features = ["json"]
