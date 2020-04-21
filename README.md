@@ -17,10 +17,7 @@ Intended to be used together with the [Musicbot-web](https://github.com/FelixGai
                 {
                     "name": "name of the bot",
                     "address": "SocketAddress of the bot, e.g. 192.168.178.123:41239",
-                    "updated": {
-                        "seconds-since-epoch": "number",
-                        "milliseconds-since-epoch": "number"
-                    }
+                    "updated": "number; milliseconds since registration/update"
                 }
             ]
             ```

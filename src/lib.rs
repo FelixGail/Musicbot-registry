@@ -8,6 +8,26 @@ use rocket::Request;
 
 pub struct RemoteAddress(IpAddr);
 
+mod time_parser {
+    use serde::{Serializer};
+    use std::time::{SystemTime, UNIX_EPOCH};
+    use serde::ser::Error;
+
+    pub fn serialize<S>(
+        timestamp: &SystemTime,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer
+    {
+        return match timestamp.duration_since(UNIX_EPOCH) {
+            Ok(t) => serializer.serialize_u64(t.as_millis() as u64),
+            Err(_) => Err(S::Error::custom("Error parsing time"))
+        }
+
+    }
+}
+
 impl RemoteAddress {
     pub fn ip(&self) -> IpAddr {
         self.0
@@ -32,9 +52,10 @@ pub struct BotInstance {
     pub name: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Clone, Debug)]
 pub struct AddressEntry {
     address: SocketAddr,
+    #[serde(with = "time_parser")]
     updated: SystemTime,
     name: String,
 }
