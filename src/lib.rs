@@ -35,7 +35,7 @@ pub struct BotInstance {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AddressEntry {
     address: SocketAddr,
-    created: SystemTime,
+    updated: SystemTime,
     name: String,
 }
 
@@ -43,13 +43,13 @@ impl AddressEntry {
     fn new(address: SocketAddr, name: String) -> AddressEntry {
         AddressEntry {
             address,
-            created: SystemTime::now(),
+            updated: SystemTime::now(),
             name,
         }
     }
 
     pub fn is_entry_valid(&self, ttl: Duration) -> bool {
-        if let Ok(t) = self.created.elapsed() {
+        if let Ok(t) = self.updated.elapsed() {
             return t < ttl;
         }
         return false;
@@ -87,7 +87,7 @@ impl Registry {
             match { vec.iter().position(|e| e == &value) } {
                 Some(pos) => {
                     if let Some(entry) = vec.get_mut(pos) {
-                        entry.created = SystemTime::now()
+                        entry.updated = SystemTime::now()
                     }
                 }
                 None => vec.push(AddressEntry::new(value, name)),
