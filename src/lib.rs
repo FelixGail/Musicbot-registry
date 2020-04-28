@@ -108,7 +108,8 @@ impl Registry {
             match { vec.iter().position(|e| e == &value) } {
                 Some(pos) => {
                     if let Some(entry) = vec.get_mut(pos) {
-                        entry.updated = SystemTime::now()
+                        entry.updated = SystemTime::now();
+                        entry.name = name;
                     }
                 }
                 None => vec.push(AddressEntry::new(value, name)),
