@@ -44,6 +44,7 @@ fn post(registry: State<LockRegistry>, addr: RemoteAddress, instance: Json<BotIn
 
 pub fn main() -> Result<(), Error> {
     let cors = rocket_cors::CorsOptions {
+        max_age: Some(86400),
         ..Default::default()
     }.to_cors()?;
 
