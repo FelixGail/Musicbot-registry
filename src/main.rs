@@ -3,12 +3,14 @@
 #[macro_use]
 extern crate rocket;
 
-use rocket::{http::Status, State};
-use rocket_contrib::json::Json;
 use std::sync::RwLock;
 use std::time::Duration;
 
+use rocket::{http::Status, State};
+use rocket_contrib::json::Json;
+
 use crate::lib::{AddressEntry, BotInstance, Registry, RemoteAddress};
+use rocket_cors::Error;
 
 mod lib;
 
@@ -40,12 +42,18 @@ fn post(registry: State<LockRegistry>, addr: RemoteAddress, instance: Json<BotIn
     Status::InternalServerError
 }
 
-pub fn main() {
+pub fn main() -> Result<(), Error> {
+    let cors = rocket_cors::CorsOptions {
+        ..Default::default()
+    }.to_cors()?;
+
     rocket::ignite()
         .manage(RwLock::new(Registry::create(
             CAPACITY,
             Duration::from_secs(TTL_SECS),
         )))
         .mount("/", routes![index, post])
+        .attach(cors)
         .launch();
+    Ok(())
 }
