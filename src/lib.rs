@@ -9,22 +9,18 @@ use rocket::Request;
 pub struct RemoteAddress(IpAddr);
 
 mod time_parser {
-    use serde::{Serializer};
-    use std::time::{SystemTime, UNIX_EPOCH};
     use serde::ser::Error;
+    use serde::Serializer;
+    use std::time::{SystemTime, UNIX_EPOCH};
 
-    pub fn serialize<S>(
-        timestamp: &SystemTime,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer
+    pub fn serialize<S>(timestamp: &SystemTime, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
     {
         return match timestamp.duration_since(UNIX_EPOCH) {
             Ok(t) => serializer.serialize_u64(t.as_millis() as u64),
-            Err(_) => Err(S::Error::custom("Error parsing time"))
-        }
-
+            Err(_) => Err(S::Error::custom("Error parsing time")),
+        };
     }
 }
 
@@ -38,7 +34,19 @@ impl<'a, 'r> FromRequest<'a, 'r> for RemoteAddress {
     type Error = ();
 
     fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
-        return if let Some(addr) = request.client_ip() {
+        let ip = request.client_ip().or_else(|| {
+            request.headers().get_one("X-Forwarded-For").and_then(|ip| {
+                ip.parse()
+                    .map_err(|_| println!("'X-Real-IP' header is malformed: {}", ip))
+                    .ok()
+            })
+        });
+        println!(
+            "Request IP: {}",
+            ip.map(|it| it.to_string())
+                .get_or_insert("unknown".to_string())
+        );
+        return if let Some(addr) = ip {
             Outcome::Success(RemoteAddress { 0: addr })
         } else {
             Outcome::Forward(())
