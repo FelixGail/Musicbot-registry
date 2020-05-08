@@ -34,13 +34,15 @@ impl<'a, 'r> FromRequest<'a, 'r> for RemoteAddress {
     type Error = ();
 
     fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
-        let ip = request.client_ip().or_else(|| {
-            request.headers().get_one("X-Forwarded-For").and_then(|ip| {
+        let ip = request
+            .headers()
+            .get_one("X-Forwarded-For")
+            .and_then(|ip| {
                 ip.parse()
                     .map_err(|_| println!("'X-Real-IP' header is malformed: {}", ip))
                     .ok()
             })
-        });
+            .or_else(|| request.real_ip());
         println!(
             "Request IP: {}",
             ip.map(|it| it.to_string())
