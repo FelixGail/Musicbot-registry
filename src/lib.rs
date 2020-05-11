@@ -1,12 +1,10 @@
 use serde::{Deserialize, Serialize};
-use std::net::{IpAddr, SocketAddr};
+use std::net::IpAddr;
 use std::time::{Duration, SystemTime};
 
 use multimap::MultiMap;
 use rocket::request::{FromRequest, Outcome};
 use rocket::Request;
-
-pub struct RemoteAddress(IpAddr);
 
 mod time_parser {
     use serde::ser::Error;
@@ -23,6 +21,8 @@ mod time_parser {
         };
     }
 }
+
+pub struct RemoteAddress(IpAddr);
 
 impl RemoteAddress {
     pub fn ip(&self) -> IpAddr {
@@ -43,11 +43,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for RemoteAddress {
                     .ok()
             })
             .or_else(|| request.real_ip());
-        println!(
-            "Request IP: {}",
-            ip.map(|it| it.to_string())
-                .get_or_insert("unknown".to_string())
-        );
         return if let Some(addr) = ip {
             Outcome::Success(RemoteAddress { 0: addr })
         } else {
@@ -58,24 +53,27 @@ impl<'a, 'r> FromRequest<'a, 'r> for RemoteAddress {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BotInstance {
-    pub address: SocketAddr,
+    pub domain: String,
+    pub port: u16,
     pub name: String,
 }
 
 #[derive(Serialize, Clone, Debug)]
 pub struct AddressEntry {
-    address: SocketAddr,
+    pub domain: String,
+    pub port: u16,
     #[serde(with = "time_parser")]
     updated: SystemTime,
     name: String,
 }
 
 impl AddressEntry {
-    fn new(address: SocketAddr, name: String) -> AddressEntry {
+    fn new_from_instance(instance: &BotInstance) -> AddressEntry {
         AddressEntry {
-            address,
+            domain: instance.domain.clone(),
+            port: instance.port,
             updated: SystemTime::now(),
-            name,
+            name: instance.name.clone(),
         }
     }
 
@@ -89,13 +87,13 @@ impl AddressEntry {
 
 impl PartialEq for AddressEntry {
     fn eq(&self, other: &Self) -> bool {
-        self.address.eq(&other.address)
+        self.domain.eq(&other.domain) && self.port.eq(&other.port)
     }
 }
 
-impl PartialEq<SocketAddr> for AddressEntry {
-    fn eq(&self, other: &SocketAddr) -> bool {
-        self.address.eq(other)
+impl PartialEq<BotInstance> for AddressEntry {
+    fn eq(&self, other: &BotInstance) -> bool {
+        self.domain.eq(&other.domain) && self.port.eq(&other.port)
     }
 }
 
@@ -113,34 +111,31 @@ impl Registry {
         }
     }
 
-    fn insert_unchecked(&mut self, key: IpAddr, value: SocketAddr, name: String) -> () {
+    fn insert_unchecked(&mut self, key: IpAddr, value: BotInstance) -> () {
         if let Some(vec) = self.multimap.get_vec_mut(&key) {
             match { vec.iter().position(|e| e == &value) } {
                 Some(pos) => {
                     if let Some(entry) = vec.get_mut(pos) {
                         entry.updated = SystemTime::now();
-                        entry.name = name;
+                        entry.name = value.domain;
                     }
                 }
-                None => vec.push(AddressEntry::new(value, name)),
+                None => vec.push(AddressEntry::new_from_instance(&value)),
             }
         } else {
-            self.multimap.insert(key, AddressEntry::new(value, name));
+            self.multimap
+                .insert(key, AddressEntry::new_from_instance(&value));
         }
     }
 
-    pub fn insert_struct(&mut self, key: IpAddr, instance: BotInstance) -> bool {
-        self.insert(key, instance.address, instance.name)
-    }
-
-    pub fn insert(&mut self, key: IpAddr, value: SocketAddr, name: String) -> bool {
+    pub fn insert(&mut self, key: IpAddr, value: BotInstance) -> bool {
         if self.multimap.len() < self.multimap.capacity() {
-            self.insert_unchecked(key, value, name);
+            self.insert_unchecked(key, value);
             return true;
         } else {
             self.clean();
             if self.multimap.len() < self.multimap.capacity() {
-                self.insert_unchecked(key, value, name);
+                self.insert_unchecked(key, value);
                 return true;
             }
         }
@@ -199,35 +194,35 @@ mod tests {
     #[test]
     fn insert_and_get() -> () {
         let mut reg = Registry::create(5, Duration::from_secs(300));
-        reg.insert(
-            IpAddr::V4(Ipv4Addr::LOCALHOST),
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
-            "Test".parse().unwrap(),
-        );
+        let bot_instance = BotInstance {
+            domain: "instance.kiu.party".to_string(),
+            port: 41234,
+            name: "Test".to_string(),
+        };
+        reg.insert(IpAddr::V4(Ipv4Addr::LOCALHOST), bot_instance);
         assert_eq!(1, reg.multimap.len());
         let (vec, dirty) = reg.get(&IpAddr::V4(Ipv4Addr::LOCALHOST)).unwrap();
         assert_eq!(1, vec.len());
         assert!(!dirty);
-        assert_eq!(
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
-            vec[0].address
-        )
+        assert_eq!("instance.kiu.party".to_string(), vec[0].domain)
     }
 
     #[test]
     fn test_ttl() -> () {
         let mut reg = Registry::create(5, Duration::from_secs(4));
-        reg.insert(
-            IpAddr::V4(Ipv4Addr::LOCALHOST),
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080),
-            "Test".parse().unwrap(),
-        );
+        let bot_instance_1 = BotInstance {
+            domain: "instance.kiu.party".to_string(),
+            port: 41234,
+            name: "Test".to_string(),
+        };
+        reg.insert(IpAddr::V4(Ipv4Addr::LOCALHOST), bot_instance_1);
         thread::sleep(Duration::from_secs(2));
-        reg.insert(
-            IpAddr::V4(Ipv4Addr::LOCALHOST),
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8081),
-            "Test".parse().unwrap(),
-        );
+        let bot_instance_2 = BotInstance {
+            domain: "instance.kiu.party".to_string(),
+            port: 41235,
+            name: "Test".to_string(),
+        };
+        reg.insert(IpAddr::V4(Ipv4Addr::LOCALHOST), bot_instance_2);
         thread::sleep(Duration::from_secs(2));
         let (vec, dirty) = reg.get(&IpAddr::V4(Ipv4Addr::LOCALHOST)).unwrap();
         assert_eq!(1, vec.len());

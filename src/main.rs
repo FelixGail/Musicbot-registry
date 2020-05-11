@@ -9,10 +9,10 @@ use std::time::Duration;
 use rocket::{http::Status, State};
 use rocket_contrib::json::Json;
 
-use crate::lib::{AddressEntry, BotInstance, Registry, RemoteAddress};
 use rocket_cors::Error;
 
 mod lib;
+use crate::lib::{AddressEntry, BotInstance, Registry, RemoteAddress};
 
 static TTL_SECS: u64 = 300;
 static CAPACITY: usize = 10000;
@@ -36,7 +36,7 @@ fn index(registry: State<LockRegistry>, addr: RemoteAddress) -> Json<Vec<Address
 #[post("/", data = "<instance>")]
 fn post(registry: State<LockRegistry>, addr: RemoteAddress, instance: Json<BotInstance>) -> Status {
     let mut reg = registry.write().expect("could not lock registry");
-    if reg.insert_struct(addr.ip(), instance.into_inner()) {
+    if reg.insert(addr.ip(), instance.into_inner()) {
         return Status::Accepted;
     }
     Status::InternalServerError
@@ -46,7 +46,8 @@ pub fn main() -> Result<(), Error> {
     let cors = rocket_cors::CorsOptions {
         max_age: Some(86400),
         ..Default::default()
-    }.to_cors()?;
+    }
+    .to_cors()?;
 
     rocket::ignite()
         .manage(RwLock::new(Registry::create(

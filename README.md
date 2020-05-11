@@ -16,7 +16,8 @@ Intended to be used together with the [Musicbot-web](https://github.com/FelixGai
             [
                 {
                     "name": "name of the bot",
-                    "address": "SocketAddress of the bot, e.g. 192.168.178.123:41239",
+                    "domain": "Domain of the bot, e.g. sample.instance.kiu.party",
+                    "port": 41239,
                     "updated": "number; milliseconds since registration/update"
                 }
             ]
@@ -28,7 +29,8 @@ Intended to be used together with the [Musicbot-web](https://github.com/FelixGai
 
         ```json
         {
-            "address": "SocketAddress of the bot, e.g. 192.168.178.123:41239",
+            "domain": "Domain of the bot, e.g. sample.instance.kiu.party",
+            "port": 41239,
             "name": "Name of the bot"
         }
         ```
