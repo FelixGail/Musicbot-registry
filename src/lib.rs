@@ -125,7 +125,7 @@ impl Registry {
                     if let Some(entry) = vec.get_mut(pos) {
                         debug!("Updating entry {:?} for key {}", &value, &key);
                         entry.updated = SystemTime::now();
-                        entry.name = value.domain;
+                        entry.name = value.name;
                     }
                 }
                 None => {
