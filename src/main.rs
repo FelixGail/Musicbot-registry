@@ -2,6 +2,8 @@
 
 #[macro_use]
 extern crate rocket;
+extern crate log;
+extern crate simplelog;
 
 use std::sync::RwLock;
 use std::time::Duration;
@@ -13,6 +15,9 @@ use rocket_cors::Error;
 
 mod lib;
 use crate::lib::{AddressEntry, BotInstance, Registry, RemoteAddress};
+use log::LevelFilter;
+use simplelog::{CombinedLogger, ConfigBuilder, TermLogger, TerminalMode, WriteLogger};
+use std::fs::File;
 
 static TTL_SECS: u64 = 300;
 static CAPACITY: usize = 10000;
@@ -43,6 +48,23 @@ fn post(registry: State<LockRegistry>, addr: RemoteAddress, instance: Json<BotIn
 }
 
 pub fn main() -> Result<(), Error> {
+    let logger_config = ConfigBuilder::new().set_time_to_local(true).build();
+
+    CombinedLogger::init(vec![
+        TermLogger::new(
+            LevelFilter::Debug,
+            logger_config.clone(),
+            TerminalMode::Mixed,
+        )
+        .unwrap(),
+        WriteLogger::new(
+            LevelFilter::Debug,
+            logger_config,
+            File::create("registry.log").unwrap(),
+        ),
+    ])
+    .unwrap();
+
     let cors = rocket_cors::CorsOptions {
         max_age: Some(86400),
         ..Default::default()

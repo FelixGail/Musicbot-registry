@@ -6,6 +6,8 @@ use multimap::MultiMap;
 use rocket::request::{FromRequest, Outcome};
 use rocket::Request;
 
+use log::{debug, warn};
+
 mod time_parser {
     use serde::ser::Error;
     use serde::Serializer;
@@ -105,6 +107,11 @@ pub struct Registry {
 
 impl Registry {
     pub fn create(capacity: usize, ttl: Duration) -> Registry {
+        debug!(
+            "Creating new registry instance with capacity {} and ttl of {} seconds",
+            capacity,
+            ttl.as_secs()
+        );
         Registry {
             multimap: MultiMap::with_capacity(capacity),
             ttl,
@@ -116,13 +123,18 @@ impl Registry {
             match { vec.iter().position(|e| e == &value) } {
                 Some(pos) => {
                     if let Some(entry) = vec.get_mut(pos) {
+                        debug!("Updating entry {:?} for key {}", &value, &key);
                         entry.updated = SystemTime::now();
                         entry.name = value.domain;
                     }
                 }
-                None => vec.push(AddressEntry::new_from_instance(&value)),
+                None => {
+                    debug!("Adding new entry {:?} to key {}", &value, &key);
+                    vec.push(AddressEntry::new_from_instance(&value))
+                }
             }
         } else {
+            debug!("Adding new key {} with entry {:?}", &key, &value);
             self.multimap
                 .insert(key, AddressEntry::new_from_instance(&value));
         }
@@ -138,6 +150,7 @@ impl Registry {
                 self.insert_unchecked(key, value);
                 return true;
             }
+            warn!("Registry is full. Not able to add new entry!")
         }
         return false;
     }
@@ -154,31 +167,44 @@ impl Registry {
                     .cloned()
                     .collect();
                 let cleaned_size = cleaned.len();
+                debug!(
+                    "Request from {} matched {:?}. Result is dirty: {}",
+                    key,
+                    cleaned,
+                    size != cleaned_size
+                );
                 Some((cleaned, size != cleaned_size))
             }
-            _ => None,
+            _ => {
+                debug!("Request from {} had no match", key);
+                None
+            }
         };
     }
 
     pub fn clean_key(&mut self, key: &IpAddr) {
+        debug!("Cleaning key {}", key);
         let ttl = self.ttl;
         let opt_vec = self.multimap.get_vec_mut(&key);
         if let Some(vec) = opt_vec {
             let mut i = 0;
             while i != vec.len() {
                 if !(&mut vec[i]).is_entry_valid(ttl) {
+                    debug!("Removing entry {:?} from key {}", vec[i], key);
                     vec.remove(i);
                 } else {
                     i += 1;
                 }
             }
             if vec.is_empty() {
-                self.multimap.remove(&key);
+                debug!("Key is empty. Removing key {}", key);
+                self.multimap.remove(key);
             }
         }
     }
 
     pub fn clean(&mut self) -> () {
+        debug!("Cleaning Registry");
         let ttl = self.ttl;
         self.multimap.retain(|_, v| v.is_entry_valid(ttl))
     }
