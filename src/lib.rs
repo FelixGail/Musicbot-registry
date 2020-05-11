@@ -44,7 +44,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for RemoteAddress {
                     .map_err(|_| println!("'X-Real-IP' header is malformed: {}", ip))
                     .ok()
             })
-            .or_else(|| request.real_ip());
+            .or_else(|| request.client_ip());
         return if let Some(addr) = ip {
             Outcome::Success(RemoteAddress { 0: addr })
         } else {
