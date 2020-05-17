@@ -16,7 +16,7 @@ use rocket_cors::Error;
 mod lib;
 use crate::lib::{AddressEntry, BotInstance, Registry, RemoteAddress};
 use log::LevelFilter;
-use simplelog::{CombinedLogger, ConfigBuilder, TermLogger, TerminalMode, WriteLogger};
+use simplelog::{CombinedLogger, ConfigBuilder, SimpleLogger, WriteLogger};
 use std::fs::File;
 
 static TTL_SECS: u64 = 300;
@@ -51,12 +51,7 @@ pub fn main() -> Result<(), Error> {
     let logger_config = ConfigBuilder::new().set_time_to_local(true).build();
 
     CombinedLogger::init(vec![
-        TermLogger::new(
-            LevelFilter::Debug,
-            logger_config.clone(),
-            TerminalMode::Mixed,
-        )
-        .unwrap(),
+        SimpleLogger::new(LevelFilter::Debug, logger_config.clone()),
         WriteLogger::new(
             LevelFilter::Debug,
             logger_config,

@@ -26,9 +26,13 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
     steps:
       - uses: actions/checkout@v1
+      - name: Calculate version
+        id: vars
+        run: echo ::set-output name=version_tag::$(cat Cargo.toml | grep version | head -1 | awk -F= "{ print $2 }" | sed -E 's/(version)|[=,\",]//g' | tr -d '[[:space:]]')
       - name: Build & Publish
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: felixgail/musicbot-registry
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+          tags: "latest,${{ steps.vars.outputs.version_tag }}"
