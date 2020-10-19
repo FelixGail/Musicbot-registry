@@ -1,6 +1,6 @@
 [package]
 name = "musicbot-registry"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Felix Gail <felix.clemens.gail@gmail.com>"]
 description = "Keeps a registry of active Musicbots (https://github.com/BjoernPetersen/MusicBot) on your public ip"
 edition = "2018"
