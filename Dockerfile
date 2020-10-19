@@ -18,11 +18,7 @@ ARG APP=/app
 ARG PORT=8000
 EXPOSE ${PORT}
 
-ENV TZ=Etc/UTC \
-    APP_USER=appuser
-
-RUN addgroup -S $APP_USER \
-    && adduser -S -g $APP_USER $APP_USER
+ENV TZ=Etc/UTC
 
 RUN apk update \
     && apk add --no-cache ca-certificates tzdata \
@@ -30,10 +26,8 @@ RUN apk update \
 
 COPY --from=builder /home/rust/src/musicbot-registry/target/x86_64-unknown-linux-musl/release/musicbot-registry ${APP}/musicbot-registry
 COPY ./Rocket.toml ./Rocket.toml
-RUN chown -R $APP_USER:$APP_USER ${APP}
 
-USER $APP_USER
 WORKDIR ${APP}
 CMD ["./musicbot-registry"]
 
-HEALTHCHECK CMD curl -f http://localhost:$PORT/ || exit 1
+HEALTHCHECK CMD curl -f http://localhost:${PORT} || exit 1
