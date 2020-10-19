@@ -37,4 +37,4 @@ jobs:
           name: felixgail/musicbot-registry
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          tags: "latest,${{ steps.vars.outputs.version_tag }},${GITHUB_SHA}"
+          tags: "latest,${{ steps.vars.outputs.version_tag }},${{ github.sha }}"
