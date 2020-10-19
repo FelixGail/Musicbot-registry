@@ -35,5 +35,5 @@ RUN chown -R $APP_USER:$APP_USER ${APP}
 USER $APP_USER
 WORKDIR ${APP}
 CMD ["./musicbot-registry"]
-cker
+
 HEALTHCHECK CMD curl -f http://localhost:$PORT/ || exit 1
