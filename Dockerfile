@@ -1,5 +1,6 @@
 FROM ekidd/rust-musl-builder:nightly-2020-10-08 as builder
 
+USER root
 RUN cargo new --bin musicbot-registry
 WORKDIR ./musicbot-registry
 
