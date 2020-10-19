@@ -1,11 +1,11 @@
 FROM ekidd/rust-musl-builder:nightly-2020-10-08 as builder
 
-USER rust
-RUN USER=rust cargo new --bin musicbot-registry
+RUN USER=root cargo new --bin musicbot-registry
 WORKDIR ./musicbot-registry
 
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
+RUN chown -R $(whoami) /home/rust
 RUN cargo update
 RUN cargo build --release
 RUN rm src/*.rs
@@ -35,5 +35,5 @@ RUN chown -R $APP_USER:$APP_USER ${APP}
 USER $APP_USER
 WORKDIR ${APP}
 CMD ["./musicbot-registry"]
-
+cker
 HEALTHCHECK CMD curl -f http://localhost:$PORT/ || exit 1
