@@ -8,15 +8,15 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = "0.4.4"
+rocket = "0.4.5"
 rocket_cors = "0.5.2"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-multimap = "0.8.1"
-log = { version = "0.4.8", features = ["max_level_debug", "release_max_level_warn"]}
-simplelog = "0.7.6"
+serde = { version = "1.0.117", features = ["derive"] }
+serde_json = "1.0.59"
+multimap = "0.8.2"
+log = { version = "0.4.11", features = ["max_level_debug", "release_max_level_warn"]}
+simplelog = "0.8.0"
 
 [dependencies.rocket_contrib]
-version = "0.4.4"
+version = "0.4.5"
 default-features = false
 features = ["json"]
