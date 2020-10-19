@@ -5,7 +5,7 @@ WORKDIR ./musicbot-registry
 
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
-RUN chown -R $(whoami) /home/rust
+RUN sudo chown -R $(whoami) /home/rust
 RUN cargo update
 RUN cargo build --release
 RUN rm src/*.rs
