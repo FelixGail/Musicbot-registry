@@ -1,6 +1,6 @@
 FROM ekidd/rust-musl-builder:nightly-2020-10-08 as builder
 
-RUN USER=root cargo new --bin musicbot-registry
+RUN cargo new --bin musicbot-registry
 WORKDIR ./musicbot-registry
 
 COPY ./Cargo.lock ./Cargo.lock
