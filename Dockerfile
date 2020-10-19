@@ -1,7 +1,7 @@
 FROM ekidd/rust-musl-builder:nightly-2020-10-08 as builder
 
 USER rust
-RUN cargo new --bin musicbot-registry
+RUN USER=rust cargo new --bin musicbot-registry
 WORKDIR ./musicbot-registry
 
 COPY ./Cargo.lock ./Cargo.lock
