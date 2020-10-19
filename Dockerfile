@@ -21,7 +21,7 @@ EXPOSE ${PORT}
 ENV TZ=Etc/UTC
 
 RUN apk update \
-    && apk add --no-cache ca-certificates tzdata \
+    && apk add --no-cache ca-certificates tzdata curl\
     && rm -rf /var/cache/apk/*
 
 COPY --from=builder /home/rust/src/musicbot-registry/target/x86_64-unknown-linux-musl/release/musicbot-registry ${APP}/musicbot-registry
