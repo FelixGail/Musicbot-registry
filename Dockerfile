@@ -15,13 +15,11 @@ RUN cargo build --release
 
 FROM alpine:latest
 ARG APP=/app
-ARG PORT=8000
-EXPOSE ${PORT}
 
 ENV TZ=Etc/UTC
 
 RUN apk update \
-    && apk add --no-cache ca-certificates tzdata curl\
+    && apk add --no-cache ca-certificates tzdata\
     && rm -rf /var/cache/apk/*
 
 COPY --from=builder /home/rust/src/musicbot-registry/target/x86_64-unknown-linux-musl/release/musicbot-registry ${APP}/musicbot-registry
@@ -29,5 +27,3 @@ COPY ./Rocket.toml ./Rocket.toml
 
 WORKDIR ${APP}
 CMD ["./musicbot-registry"]
-
-HEALTHCHECK CMD curl -f http://localhost:${PORT} || exit 1
