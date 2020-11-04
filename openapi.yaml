@@ -1,0 +1,69 @@
+openapi: "3.0.2"
+info:
+  description: "Keeps a registry of active Musicbots on your public ip."
+  version: "1.0.0"
+  title: "MusicBot-registry"
+  license:
+    name: MIT
+    url: "https://opensource.org/licenses/MIT"
+    
+paths:
+  "/":
+    get:
+      summary: Receive instances
+      operationId: getInstances
+      description: >
+        Returns a list of musicbot instances registered from the same public IP
+        address your request can be traced to
+      responses:
+        200:
+          description: A list of musicbot instances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtendedInstance'
+    post:
+      summary: Register an instance
+      operationId: addInstance
+      description: >
+        Register a musicbot instance for your public IP or update an existing entry.
+      requestBody:
+        required: true
+        description: A Musicbot Instace to register/update
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Instance'
+      responses:
+        201:
+          description: Success
+        400:
+          description: Bad request
+
+components:
+  schemas:
+    Instance:
+      description: A Musicbot instance
+      type: object
+      required:
+        - domain
+        - port
+      properties:
+        domain:
+          type: string
+          example: "f4e8ae2fb44b96e699db5412d7c73501ed34ee5f.c9ca73a1-a7a4-47d0-8745-0271f9227690.instance.kiu.party"
+        port:
+          type: number
+          example: 42946
+    ExtendedInstance:
+      allOf:
+        - $ref: '#/components/schemas/Instance'
+        - type: object
+          required:
+            - updated
+          properties:
+            updated:
+              type: number
+              description: >
+                Unix timestamp of the last update to the entry
+              example: 1604485839431
