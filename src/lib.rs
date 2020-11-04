@@ -56,8 +56,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for RemoteAddress {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BotInstance {
     pub domain: String,
-    pub port: u16,
-    pub name: String,
+    pub port: u16
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -65,8 +64,7 @@ pub struct AddressEntry {
     pub domain: String,
     pub port: u16,
     #[serde(with = "time_parser")]
-    updated: SystemTime,
-    name: String,
+    updated: SystemTime
 }
 
 impl AddressEntry {
@@ -75,7 +73,6 @@ impl AddressEntry {
             domain: instance.domain.clone(),
             port: instance.port,
             updated: SystemTime::now(),
-            name: instance.name.clone(),
         }
     }
 
@@ -125,7 +122,6 @@ impl Registry {
                     if let Some(entry) = vec.get_mut(pos) {
                         debug!("Updating entry {:?} for key {}", &value, &key);
                         entry.updated = SystemTime::now();
-                        entry.name = value.name;
                     }
                 }
                 None => {
@@ -222,8 +218,7 @@ mod tests {
         let mut reg = Registry::create(5, Duration::from_secs(300));
         let bot_instance = BotInstance {
             domain: "instance.kiu.party".to_string(),
-            port: 41234,
-            name: "Test".to_string(),
+            port: 41234
         };
         reg.insert(IpAddr::V4(Ipv4Addr::LOCALHOST), bot_instance);
         assert_eq!(1, reg.multimap.len());
@@ -238,15 +233,13 @@ mod tests {
         let mut reg = Registry::create(5, Duration::from_secs(4));
         let bot_instance_1 = BotInstance {
             domain: "instance.kiu.party".to_string(),
-            port: 41234,
-            name: "Test".to_string(),
+            port: 41234
         };
         reg.insert(IpAddr::V4(Ipv4Addr::LOCALHOST), bot_instance_1);
         thread::sleep(Duration::from_secs(2));
         let bot_instance_2 = BotInstance {
             domain: "instance.kiu.party".to_string(),
-            port: 41235,
-            name: "Test".to_string(),
+            port: 41235
         };
         reg.insert(IpAddr::V4(Ipv4Addr::LOCALHOST), bot_instance_2);
         thread::sleep(Duration::from_secs(2));
