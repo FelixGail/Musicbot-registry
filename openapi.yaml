@@ -53,7 +53,8 @@ components:
           type: string
           example: "f4e8ae2fb44b96e699db5412d7c73501ed34ee5f.c9ca73a1-a7a4-47d0-8745-0271f9227690.instance.kiu.party"
         port:
-          type: number
+          type: integer
+          format: int32
           example: 42946
     ExtendedInstance:
       allOf:
@@ -63,7 +64,8 @@ components:
             - updated
           properties:
             updated:
-              type: number
+              type: integer
+              format: int64
               description: >
                 Unix timestamp of the last update to the entry
               example: 1604485839431
