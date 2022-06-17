@@ -1,4 +1,4 @@
-FROM ekidd/rust-musl-builder:nightly-2020-10-08 as builder
+FROM ekidd/rust-musl-builder:nightly-2021-12-23 as builder
 
 RUN USER=root cargo new --bin musicbot-registry
 WORKDIR ./musicbot-registry

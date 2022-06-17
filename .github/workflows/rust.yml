@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions-rs/toolchain@v1
+    - uses: hecrj/setup-rust-action@v1
       with:
-        toolchain: nightly
+        rust-toolchain: nightly
     - uses: actions/checkout@v2
     - name: Update
       run: cargo update
