@@ -3,7 +3,7 @@ name = "musicbot-registry"
 version = "0.2.0"
 authors = ["Felix Gail <felix.clemens.gail@gmail.com>"]
 description = "Keeps a registry of active Musicbots (https://github.com/BjoernPetersen/MusicBot) on your public ip"
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
